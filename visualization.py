@@ -1,5 +1,12 @@
 from PIL import Image, ImageDraw
 import os
+import sys
+import math
+import numpy as np
+
+# Import the generator scripts
+sys.path.insert(0, './generators')
+from generators import case_generator
 
 # Configure the outputted image
 img_size = (3072, 1024)
@@ -88,3 +95,36 @@ def generate_image(cells, initial_pos, goal_pos, obstacles, response = None, out
 
     os.makedirs(os.path.dirname(output_filename), exist_ok=True)
     img.save(output_filename)
+
+
+def convert_string_to_tuple(input):
+    values = input.split(",")
+    return list(map(int, values))
+
+# If script is run directly, generate examples for each density
+if __name__ == "__main__":
+    # case = {
+    #     "size": "4,4",
+    #     "initial": "3,1",
+    #     "goal": "2, 3",
+    #     "obstacles": ["0,0", "0,1", "1,1"],
+    # }
+    # generate_image(
+    #     convert_string_to_tuple(case.get("size")),
+    #     convert_string_to_tuple(case.get("initial")),
+    #     convert_string_to_tuple(case.get("goal")),
+    #     list(map(convert_string_to_tuple, case.get("obstacles"))),
+    #     None,
+    #     f"img-out/poster.png")
+    size = 6
+    for density in np.arange(0, 0.5, 0.1):
+        obstacle_count = math.ceil(size * size * density)
+        case = case_generator.generate_navigation2d(size, obstacle_count)
+
+        generate_image(
+            convert_string_to_tuple(case.get("size")),
+            convert_string_to_tuple(case.get("initial")),
+            convert_string_to_tuple(case.get("goal")),
+            list(map(convert_string_to_tuple, case.get("obstacles"))),
+            None,
+            f"img-out/example_{round(density, 1)}.png")
